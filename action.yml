@@ -2,9 +2,17 @@ name: valint_evidence
 description: Collect, Create and Store any file as evidence
 author: ""
 inputs:
-  file:
-    description: File Path to add as evidence
+  target:
+    description:
     required: true
+  type:
+    description: Target source type scheme=[docker,docker-archive, oci-archive, dir, registry, git, generic]
+    deprecationMessage: Please use target fields, formated [type]:[target]:[tag]
+    required: false
+  scribe-audience:
+    description: Scribe auth audience
+    deprecationMessage: Please use scribe-auth-audience instead
+    required: false
   compress:
     description: Compress content)
   format:
@@ -125,7 +133,8 @@ runs:
       run: |-
         $HOME/.scribe/bin/valint \
         evidence \
-        ${{ inputs.file}} \
+        ${{ inputs.type }}${{ inputs.type && ':' }}${{ inputs.target }} \
+        ${{ inputs.scribe-audience && '--scribe.auth.audience=' }}${{ inputs.scribe-audience }} \
         ${{ inputs.compress && '--compress=' }}${{ inputs.compress }} \
         ${{ inputs.format && '--format=' }}${{ inputs.format }} \
         ${{ inputs.format-encoding && '--format-encoding=' }}${{ inputs.format-encoding }} \
