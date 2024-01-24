@@ -1,6 +1,10 @@
-name: valint_evidence
+name: Scribe Third-party Evidence action
 description: Collect, Create and Store any file as evidence
-author: ""
+author: Mikey Strauss
+outputs:
+  OUTPUT_PATH:
+    description: evidence output file path
+    value: ${{ steps.run_valint.outputs.OUTPUT_PATH }}
 inputs:
   target:
     description:
