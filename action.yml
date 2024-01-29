@@ -1,10 +1,22 @@
-name: valint_evidence
+name: Scribe Third-party Evidence action
 description: Collect, Create and Store any file as evidence
-author: ""
+author: Mikey Strauss
+outputs:
+  OUTPUT_PATH:
+    description: evidence output file path
+    value: ${{ steps.run_valint.outputs.OUTPUT_PATH }}
 inputs:
-  file:
-    description: File Path to add as evidence
+  target:
+    description:
     required: true
+  type:
+    description: Target source type scheme=[docker,docker-archive, oci-archive, dir, registry, git, generic]
+    deprecationMessage: Please use target fields, formated [type]:[target]:[tag]
+    required: false
+  scribe-audience:
+    description: Scribe auth audience
+    deprecationMessage: Please use scribe-auth-audience instead
+    required: false
   compress:
     description: Compress content)
   format:
@@ -50,7 +62,7 @@ inputs:
   disable-crl:
     description: Disable certificate revocation verificatoin
   env:
-    description: Environment keys to include in sbom
+    description: Environment keys to include in evidence
   filter-regex:
     description: Filter out files by regex
   filter-scope:
@@ -84,14 +96,14 @@ inputs:
     description: Pipeline name
   platform:
     description: Select target platform, examples=windows/armv6, arm64 ..)
-  policy-args:
-    description: Policy arguments
   predicate-type:
     description: Custom Predicate type (generic evidence format)
   product-key:
     description: Product Key
   product-version:
     description: Product Version
+  rule-args:
+    description: Policy arguments
   scribe-auth-audience:
     description: Scribe auth audience
   scribe-client-id:
@@ -117,7 +129,7 @@ runs:
       name: Install valint
       run: |2-
         if [ ! -e "$HOME/.scribe/bin/valint" ]; then
-        	curl -sSfL https://get.scribesecurity.com/install.sh  | sh -s -- -t valint
+        	curl -sSfL https://get.scribesecurity.com/install.sh  | sh -s -- -t valint:v1.1.0
         fi
     - shell: bash
       name: Run valint command
@@ -125,7 +137,8 @@ runs:
       run: |-
         $HOME/.scribe/bin/valint \
         evidence \
-        ${{ inputs.file}} \
+        ${{ inputs.type }}${{ inputs.type && ':' }}${{ inputs.target }} \
+        ${{ inputs.scribe-audience && '--scribe.auth.audience=' }}${{ inputs.scribe-audience }} \
         ${{ inputs.compress && '--compress=' }}${{ inputs.compress }} \
         ${{ inputs.format && '--format=' }}${{ inputs.format }} \
         ${{ inputs.format-encoding && '--format-encoding=' }}${{ inputs.format-encoding }} \
@@ -166,10 +179,10 @@ runs:
         ${{ inputs.output-file && '--output-file=' }}${{ inputs.output-file }} \
         ${{ inputs.pipeline-name && '--pipeline-name=' }}${{ inputs.pipeline-name }} \
         ${{ inputs.platform && '--platform=' }}${{ inputs.platform }} \
-        ${{ inputs.policy-args && '--policy-args=' }}${{ inputs.policy-args }} \
         ${{ inputs.predicate-type && '--predicate-type=' }}${{ inputs.predicate-type }} \
         ${{ inputs.product-key && '--product-key=' }}${{ inputs.product-key }} \
         ${{ inputs.product-version && '--product-version=' }}${{ inputs.product-version }} \
+        ${{ inputs.rule-args && '--rule-args=' }}${{ inputs.rule-args }} \
         ${{ inputs.scribe-auth-audience && '--scribe.auth.audience=' }}${{ inputs.scribe-auth-audience }} \
         ${{ inputs.scribe-client-id && '--scribe.client-id=' }}${{ inputs.scribe-client-id }} \
         ${{ inputs.scribe-client-secret && '--scribe.client-secret=' }}${{ inputs.scribe-client-secret }} \
