@@ -22,17 +22,17 @@ inputs:
   format:
     description: Evidence format, options=[statement attest]
   format-encoding:
-    description: Format encoding
+    description: Evidence Format encoding
   format-type:
-    description: Format type
+    description: Evidence Format type
   format-version:
-    description: Format version
+    description: Evidence Format version
   tool:
-    description: Tool name
+    description: Evidence Tool name
   tool-vendor:
-    description: Tool vendor
+    description: Evidence Tool vendor
   tool-version:
-    description: Tool version
+    description: Evidence Tool version
   allow-expired:
     description: Allow expired certs
   attest-config:
@@ -67,6 +67,10 @@ inputs:
     description: Filter out files by regex
   filter-scope:
     description: Filter packages by scope
+  gate:
+    description: Policy Gate name
+  git-auth:
+    description: 'Git repository authentication info, [format: ''username:password'']'
   git-branch:
     description: Git branch in the repository
   git-commit:
@@ -105,7 +109,7 @@ inputs:
   rule-args:
     description: Policy arguments
   scribe-auth-audience:
-    description: Scribe auth audience
+    description: Scribe auth audience (deprecated)
   scribe-client-id:
     description: Scribe Client ID
   scribe-client-secret:
@@ -113,7 +117,7 @@ inputs:
   scribe-enable:
     description: Enable scribe client
   scribe-login-url:
-    description: Scribe login url
+    description: Scribe login url (deprecated)
   scribe-url:
     description: Scribe API Url
   structured:
@@ -129,7 +133,7 @@ runs:
       name: Install valint
       run: |2-
         if [ ! -e "$HOME/.scribe/bin/valint" ]; then
-        	curl -sSfL https://get.scribesecurity.com/install.sh  | sh -s -- -t valint:
+        	curl -sSfL https://get.scribesecurity.com/install.sh  | sh -s -- -t valint:v1.4.0
         fi
     - shell: bash
       name: Run valint command
@@ -165,6 +169,8 @@ runs:
         ${{ inputs.env && '--env=' }}${{ inputs.env }} \
         ${{ inputs.filter-regex && '--filter-regex=' }}${{ inputs.filter-regex }} \
         ${{ inputs.filter-scope && '--filter-scope=' }}${{ inputs.filter-scope }} \
+        ${{ inputs.gate && '--gate=' }}${{ inputs.gate }} \
+        ${{ inputs.git-auth && '--git-auth=' }}${{ inputs.git-auth }} \
         ${{ inputs.git-branch && '--git-branch=' }}${{ inputs.git-branch }} \
         ${{ inputs.git-commit && '--git-commit=' }}${{ inputs.git-commit }} \
         ${{ inputs.git-tag && '--git-tag=' }}${{ inputs.git-tag }} \
