@@ -27,6 +27,8 @@ inputs:
     description: Evidence Format type
   format-version:
     description: Evidence Format version
+  parser:
+    description: Evidence Parser Name
   tool:
     description: Evidence Tool name
   tool-vendor:
@@ -148,6 +150,7 @@ runs:
         ${{ inputs.format-encoding && '--format-encoding=' }}${{ inputs.format-encoding }} \
         ${{ inputs.format-type && '--format-type=' }}${{ inputs.format-type }} \
         ${{ inputs.format-version && '--format-version=' }}${{ inputs.format-version }} \
+        ${{ inputs.parser && '--parser=' }}${{ inputs.parser }} \
         ${{ inputs.tool && '--tool=' }}${{ inputs.tool }} \
         ${{ inputs.tool-vendor && '--tool-vendor=' }}${{ inputs.tool-vendor }} \
         ${{ inputs.tool-version && '--tool-version=' }}${{ inputs.tool-version }} \
