@@ -9,14 +9,6 @@ inputs:
   target:
     description:
     required: true
-  type:
-    description: Target source type scheme=[docker,docker-archive, oci-archive, dir, registry, git, generic]
-    deprecationMessage: Please use target fields, formated [type]:[target]:[tag]
-    required: false
-  scribe-audience:
-    description: Scribe auth audience
-    deprecationMessage: Please use scribe-auth-audience instead
-    required: false
   attest-config:
     description: Attestation config path
   attest-default:
@@ -117,8 +109,6 @@ runs:
       run: |-
         $HOME/.scribe/bin/valint \
         evidence \
-        ${{ inputs.type }}${{ inputs.type && ':' }}${{ inputs.target }} \
-        ${{ inputs.scribe-audience && '--scribe.auth.audience=' }}${{ inputs.scribe-audience }} \
         ${{ inputs.attest-config && '--attest.config=' }}${{ inputs.attest-config }} \
         ${{ inputs.attest-default && '--attest.default=' }}${{ inputs.attest-default }} \
         ${{ inputs.ca && '--ca=' }}${{ inputs.ca }} \
