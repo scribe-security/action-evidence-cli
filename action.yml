@@ -12,7 +12,7 @@ inputs:
   attest-config:
     description: Attestation config path
   attest-default:
-    description: Attestation default config, options=[sigstore sigstore-github x509 x509-env]
+    description: Attestation default config, options=[sigstore sigstore-github x509 x509-env kms pubkey]
   ca:
     description: x509 CA Chain path
   cert:
@@ -35,12 +35,16 @@ inputs:
     description: Evidence Format version
   key:
     description: x509 Private key path
+  kms:
+    description: Provide KMS key reference
   oci:
     description: Enable OCI store
   oci-repo:
     description: Select OCI custom attestation repo
   parser:
     description: Evidence Parser Name
+  pubkey:
+    description: Public key path
   tool:
     description: Evidence Tool name
   tool-vendor:
@@ -101,7 +105,7 @@ runs:
       name: Install valint
       run: |2-
         if [ ! -e "$HOME/.scribe/bin/valint" ] || [ -z "$LAZY_INSTALL" ]; then
-        	curl -sSfL https://get.scribesecurity.com/install.sh  | sh -s -- -t valint:v1.5.3
+        	curl -sSfL https://get.scribesecurity.com/install.sh  | sh -s -- -t valint:v1.5.5
         fi
     - shell: bash
       name: Run valint command
@@ -123,9 +127,11 @@ runs:
         ${{ inputs.format-type && '--format-type=' }}${{ inputs.format-type }} \
         ${{ inputs.format-version && '--format-version=' }}${{ inputs.format-version }} \
         ${{ inputs.key && '--key=' }}${{ inputs.key }} \
+        ${{ inputs.kms && '--kms=' }}${{ inputs.kms }} \
         ${{ inputs.oci && '--oci=' }}${{ inputs.oci }} \
         ${{ inputs.oci-repo && '--oci-repo=' }}${{ inputs.oci-repo }} \
         ${{ inputs.parser && '--parser=' }}${{ inputs.parser }} \
+        ${{ inputs.pubkey && '--pubkey=' }}${{ inputs.pubkey }} \
         ${{ inputs.tool && '--tool=' }}${{ inputs.tool }} \
         ${{ inputs.tool-vendor && '--tool-vendor=' }}${{ inputs.tool-vendor }} \
         ${{ inputs.tool-version && '--tool-version=' }}${{ inputs.tool-version }} \
