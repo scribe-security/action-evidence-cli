@@ -43,6 +43,8 @@ inputs:
     description: Select OCI custom attestation repo
   parser:
     description: Evidence Parser Name
+  pass:
+    description: Private key password
   pubkey:
     description: Public key path
   tool:
@@ -131,6 +133,7 @@ runs:
         ${{ inputs.oci && '--oci=' }}${{ inputs.oci }} \
         ${{ inputs.oci-repo && '--oci-repo=' }}${{ inputs.oci-repo }} \
         ${{ inputs.parser && '--parser=' }}${{ inputs.parser }} \
+        ${{ inputs.pass && '--pass=' }}${{ inputs.pass }} \
         ${{ inputs.pubkey && '--pubkey=' }}${{ inputs.pubkey }} \
         ${{ inputs.tool && '--tool=' }}${{ inputs.tool }} \
         ${{ inputs.tool-vendor && '--tool-vendor=' }}${{ inputs.tool-vendor }} \
