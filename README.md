@@ -33,64 +33,62 @@ The `valint evidence` action is a versatile action designed to include various t
   target:
     description:
     required: true
-  compress:
-    description: Compress content)
-  format:
-    description: Evidence format, options=[statement attest]
-  format-encoding:
-    description: Format encoding
-  format-type:
-    description: Format type
-  format-version:
-    description: Format version
-  tool:
-    description: Tool name
-  tool-vendor:
-    description: Tool vendor
-  tool-version:
-    description: Tool version
-  allow-expired:
-    description: Allow expired certs
   attest-config:
     description: Attestation config path
   attest-default:
-    description: Attestation default config, options=[sigstore sigstore-github x509 x509-env]
-  backoff:
-    description: Backoff duration
+    description: Attestation default config, options=[sigstore sigstore-github x509 x509-env kms pubkey]
   ca:
     description: x509 CA Chain path
-  cache-enable:
-    description: Enable local cache
   cert:
     description: x509 Cert path
-  config:
-    description: Configuration file path
-  context-dir:
-    description: Context dir
+  compress:
+    description: Compress content)
   crl:
     description: x509 CRL path
   crl-full-chain:
     description: Enable Full chain CRL verfication
-  deliverable:
-    description: Mark as deliverable, options=[true, false]
-  depth:
-    description: Git clone depth
   disable-crl:
     description: Disable certificate revocation verificatoin
-  env:
-    description: Environment keys to include in evidence
-  filter-regex:
-    description: Filter out files by regex
-  filter-scope:
-    description: Filter packages by scope
-  git-branch:
-    description: Git branch in the repository
-  git-commit:
-    description: Git commit hash in the repository
-  git-tag:
-    description: Git tag in the repository
+  format:
+    description: Evidence format, options=[statement attest]
+  format-encoding:
+    description: Evidence Format encoding
+  format-type:
+    description: Evidence Format type
+  format-version:
+    description: Evidence Format version
   key:
     description: x509 Private key path
+  kms:
+    description: Provide KMS key reference
+  oci:
+    description: Enable OCI store
+  oci-repo:
+    description: Select OCI custom attestation repo
+  parser:
+    description: Evidence Parser Name
+  pass:
+    description: Private key password
+  pubkey:
+    description: Public key path
+  tool:
+    description: Evidence Tool name
+  tool-vendor:
+    description: Evidence Tool vendor
+  tool-version:
+    description: Evidence Tool version
+  cache-enable:
+    description: Enable local cache
+  config:
+    description: Configuration file path
+  deliverable:
+    description: Mark as deliverable, options=[true, false]
+  env:
+    description: Environment keys to include in evidence
+  gate:
+    description: Policy Gate name
+  input:
+    description: Input Evidence target, format (\<parser>:\<file> or \<scheme>:\<name>:\<tag>)
   label:
     description: Add Custom labels
   level:
@@ -99,10 +97,6 @@ The `valint evidence` action is a versatile action designed to include various t
     description: Attach context to all logs
   log-file:
     description: Output log to file
-  oci:
-    description: Enable OCI store
-  oci-repo:
-    description: Select OCI custom attestation repo
   output-directory:
     description: Output directory path
     default: ./scribe/valint
@@ -110,26 +104,20 @@ The `valint evidence` action is a versatile action designed to include various t
     description: Output file name
   pipeline-name:
     description: Pipeline name
-  platform:
-    description: Select target platform, examples=windows/armv6, arm64 ..)
   predicate-type:
     description: Custom Predicate type (generic evidence format)
   product-key:
     description: Product Key
   product-version:
     description: Product Version
-  rule-args:
-    description: Policy arguments
-  scribe-auth-audience:
-    description: Scribe auth audience
   scribe-client-id:
-    description: Scribe Client ID
+    description: Scribe Client ID (deprecated)
   scribe-client-secret:
-    description: Scribe Client Secret
+    description: Scribe Client Token
+  scribe-disable:
+    description: Disable scribe client
   scribe-enable:
-    description: Enable scribe client
-  scribe-login-url:
-    description: Scribe login url
+    description: Enable scribe client (deprecated)
   scribe-url:
     description: Scribe API Url
   structured:
@@ -150,7 +138,7 @@ The `valint evidence` action is a versatile action designed to include various t
 Containerized action can be used on Linux runners as following
 ```yaml
 - name: Include evidence derived from a file
-  uses: scribe-security/action-evidence@v1.1.0
+  uses: scribe-security/action-evidence@v1.5.15
   with:
     target: some_file.json
 ```
@@ -158,12 +146,55 @@ Containerized action can be used on Linux runners as following
 Composite Action can be used on Linux or Windows runners as following
 ```yaml
 - name: Include evidence derived from a file
-  uses: scribe-security/action-evidence-cli@v1.1.0
+  uses: scribe-security/action-evidence-cli@v1.5.15
   with:
     target: some_file.json
 ```
 
 > Use `master` instead of tag to automatically pull latest version.
+
+
+### 1. Obtain a Scribe Hub API Token
+1. Sign in to [Scribe Hub](https://app.scribesecurity.com). If you don't have an account you can sign up for free [here](https://scribesecurity.com/scribe-platform-lp/ "Start Using Scribe For Free").
+
+2. Create a API token in [Scribe Hub > Settings > Tokens](https://app.scribesecurity.com/settings/tokens). Copy it to a safe temporary notepad until you complete the integration.
+
+:::note Important
+The token is a secret and will not be accessible from the UI after you finalize the token generation. 
+:::
+
+### 2. Add the API token to GitLab secrets
+
+Set your Scribe Hub API token in Github with a key named SCRIBE_TOKEN as instructed in *GitHub instructions](https://docs.github.com/en/actions/security-guides/encrypted-secrets/ "GitHub Instructions")
+
+### 3. Instrument your build scripts
+
+#### Usage
+
+```yaml
+name:  scribe_github_workflow
+
+on: 
+  push:
+    tags:
+      - "*"
+
+jobs:
+  scribe-sign-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: scribe-security/action-evidence@master
+        with:
+          target: [file]
+          format: [attest, statement]
+          scribe-client-secret: ${{ secrets.SCRIBE_TOKEN }}
+
+      - uses: scribe-security/action-verify@master
+        with:
+          target: [target]
+          input-format: [attest-generic, statement-generic]
+          scribe-client-secret: ${{ secrets.SCRIBE_TOKEN }}
+```
 
 ### Configuration
 If you prefer using a custom configuration file instead of specifying arguments directly, you have two choices. You can either place the configuration file in the default path, which is `.valint.yaml`, or you can specify a custom path using the `config` argument.
@@ -234,7 +265,7 @@ jobs:
   scribe-sign-verify:
     runs-on: ubuntu-latest
     steps:
-        uses: scribe-security/action-evidence-cli@master
+        uses: scribe-security/action-evidence@master
         with:
           target: some_file.json
           format: attest
@@ -254,140 +285,34 @@ jobs:
 
 </details>
 
-### Target types - `[target]`
----
-Target types are types of artifacts produced and consumed by your supply chain.
-Using supported targets, you can collect evidence and verify compliance on a range of artifacts.
+### Running action as non root user
+By default, the action runs in its own pid namespace as the root user. You can change the user by setting specific `USERID` and `USERNAME` environment variables.
 
-> Fields specified as [target] support the following format.
-
-### Format
-
-`[target] file path` 
-
-| Sources | target-type | scheme | Description | example
-| --- | --- | --- | --- | --- |
-| File | file | file | file path on disk | path/to/yourproject/file | 
-
-### Evidence Stores
-Each storer can be used to store, find and download evidence, unifying all the supply chain evidence into a system is an important part to be able to query any subset for policy validation.
-
-| Type  | Description | requirement |
-| --- | --- | --- |
-| scribe | Evidence is stored on scribe service | scribe credentials |
-| OCI | Evidence is stored on a remote OCI registry | access to a OCI registry |
-
-### Scribe Evidence store
-Scribe evidence store allows you store evidence using scribe Service.
-
-Related Flags:
-> Note the flag set:
->* `scribe-client-id`
->* `scribe-client-secret`
->* `scribe-enable`
-
-### Before you begin
-Integrating Scribe Hub with your environment requires the following credentials that are found in the **Integrations** page. (In your **[Scribe Hub](https://scribehub.scribesecurity.com/ "Scribe Hub Link")** go to **integrations**)
-
-* **Client ID**
-* **Client Secret**
-
-<img src='../../../../../img/ci/integrations-secrets.jpg' alt='Scribe Integration Secrets' width='70%' min-width='400px'/>
-
-* Add the credentials according to the **[GitHub instructions](https://docs.github.com/en/actions/security-guides/encrypted-secrets/ "GitHub Instructions")**. Based on the code example below, be sure to call the secrets **clientid** for the **client_id**, and **clientsecret** for the **client_secret**.
-
-* Use the Scribe custom actions as shown in the example bellow
-
-### Usage
-
-```yaml
-name:  scribe_github_workflow
-
-on: 
-  push:
-    tags:
-      - "*"
-
-jobs:
-  scribe-sign-verify:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: scribe-security/action-evidence-cli@master
-        with:
-          target: [target]
-          format: [attest, statement]
-          scribe-enable: true
-          scribe-client-id: ${{ secrets.clientid }}
-          scribe-client-secret: ${{ secrets.clientsecret }}
-
-      - uses: scribe-security/action-verify@master
-        with:
-          target: [target]
-          input-format: [attest-generic, statement-generic]
-          scribe-enable: true
-          scribe-client-id: ${{ secrets.clientid }}
-          scribe-client-secret: ${{ secrets.clientsecret }}
-```
-You can store the Provenance Document in alternative evidence stores. You can learn more about them **[here](../../../other-evidence-stores)**.
-
+```YAML
+- name: Include evidence step
+  uses: scribe-security/action-evidence@master
+  with:
+    target: 'some_file.json'
+  env:
+    USERID: 1001
+    USERNAME: runner
+``` 
 
 <details>
-  <summary> Alternative store OCI </summary>
+  <summary> Non root user with HIGH UID/GID </summary>
+By default, the action runs in its own pid namespace as the root user. If the user uses a high UID or GID, you must specify all the following environment variables. You can change the user by setting specific `USERID` and `USERNAME` variables. Additionally, you may group the process by setting specific `GROUPID` and `GROUP` variables.
 
-### OCI Evidence store
-Valint supports both storage and verification flows for `attestations` and `statement` objects utilizing OCI registry as an evidence store.
-
-Using OCI registry as an evidence store allows you to upload, download and verify evidence across your supply chain in a seamless manner.
-
-Related flags:
-* `oci` Enable OCI store.
-* `oci-repo` - Evidence store location.
-
-### Before you begin
-Evidence can be stored in any accusable registry.
-* Write access is required for upload (generate).
-* Read access is required for download (verify).
-
-You must first login with the required access privileges to your registry before calling Valint.
-For example, using `docker login` command or `docker/login-action` action.
-
-### Usage
-```yaml
-name:  scribe_github_workflow
-
-on: 
-  push:
-    tags:
-      - "*"
-
-jobs:
-  scribe-sign-verify:
-    runs-on: ubuntu-latest
-    steps:
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
-        with:
-          registry: ${{ env.my_registry }}
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Include evidence step
-        uses: scribe-security/action-evidence-cli@master
-        with:
-          target: [target]
-          format: [attest, statement]
-          oci: true
-          oci-repo: [oci_repo]
-
-      - name:  Verify policy step
-        uses: scribe-security/action-verify@master
-        with:
-          target: [target]
-          input-format: [attest-generic, statement-generic]
-          oci: true
-          oci-repo: [oci_repo]
-```
+```YAML
+- name: Include evidence step
+  uses: scribe-security/action-evidence@master
+  with:
+    target: 'some_file.json'
+  env:
+    USERID: 888000888
+    USERNAME: my_user
+    GROUPID: 777000777
+    GROUP: my_group
+``` 
 </details>
 
 ### Basic examples
@@ -398,7 +323,7 @@ Create evidence for local 'some_file.json' file and attach it to a specific prod
 
 ```YAML
 - name: Include evidence attached to a product
-  uses: scribe-security/action-evidence-cli@master
+  uses: scribe-security/action-evidence@master
   with:
     target: 'some_file.json'
     product-key: my_product
@@ -439,7 +364,7 @@ jobs:
           severity: 'CRITICAL,HIGH'
 
       - name: Attach sarif report as evidence
-        uses: scribe-security/action-evidence-cli@master
+        uses: scribe-security/action-evidence@master
         with:
           target: 'trivy-results.sarif'
           product-key: my_product
@@ -480,7 +405,7 @@ jobs:
           severity: 'CRITICAL,HIGH'
 
       - name: Attach sarif report as deliverable evidence
-        uses: scribe-security/action-evidence-cli@master
+        uses: scribe-security/action-evidence@master
         with:
           target: 'trivy-results.sarif'
           product-key: my_product
@@ -497,7 +422,7 @@ Include evidence for a file with custom tool-related metadata.
 ```YAML
 - name: Attach file as evidence with custom tool information
   id: valint_labels
-  uses: scribe-security/action-evidence-cli@master
+  uses: scribe-security/action-evidence@master
   with:
     target: some_file.json
     tool: my_tool
@@ -514,7 +439,7 @@ Include evidence for a file with custom format-related metadata.
 ```YAML
 - name: Attach file as evidence with custom format information
   id: valint_labels
-  uses: scribe-security/action-evidence-cli@master
+  uses: scribe-security/action-evidence@master
   with:
     target: some_file.json
     format-type: my_format
@@ -534,7 +459,7 @@ Using action `OUTPUT_PATH` output argument you can access the generated evidence
 ```YAML
 - name: Include file as evidence
   id: valint_json
-  uses: scribe-security/action-evidence-cli@master
+  uses: scribe-security/action-evidence@master
   with:
     target: some_file.json
     output-file: some_file.evidence.json
@@ -566,7 +491,7 @@ job_example:
     id-token: write
   steps:
     - name: valint attest
-    uses: scribe-security/action-evidence-cli@master
+    uses: scribe-security/action-evidence@master
     with:
       target: some_file.json
 ``` 
@@ -613,7 +538,7 @@ Full job example of a signing and verifying evidence flow.
 
       - name: valint attest
         id: valint_attest
-        uses: scribe-security/action-evidence-cli@master
+        uses: scribe-security/action-evidence@master
         with:
            target: some_file.json
            format: attest
@@ -660,7 +585,7 @@ valint-dir-test:
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_TOKEN }}
 
-      - uses: scribe-security/action-evidence-cli@master
+      - uses: scribe-security/action-evidence@master
         id: valint_attest
         with:
           target: some_file.json
@@ -705,7 +630,73 @@ Install Valint as a tool
 ``` 
 </details>
 
+### Alternative evidence stores
+
+> You can learn more about alternative stores **[here](https://scribe-security.netlify.app/docs/integrating-scribe/other-evidence-stores)**.
+
+<details>
+  <summary> Alternative store OCI </summary>
+
+Valint supports both storage and verification flows for `attestations` and `statement` objects utilizing OCI registry as an evidence store.
+
+Using OCI registry as an evidence store allows you to upload, download and verify evidence across your supply chain in a seamless manner.
+
+Related flags:
+* `oci` Enable OCI store.
+* `oci-repo` - Evidence store location.
+
+### Before you begin
+
+Evidence can be stored in any accusable registry.
+* Write access is required for upload (generate).
+* Read access is required for download (verify).
+
+You must first login with the required access privileges to your registry before calling Valint.
+For example, using `docker login` command or `docker/login-action` action.
+
+### Usage
+
+```yaml
+name:  scribe_github_workflow
+
+on: 
+  push:
+    tags:
+      - "*"
+
+jobs:
+  scribe-sign-verify:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.my_registry }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Include evidence step
+        uses: scribe-security/action-evidence@master
+        with:
+          target: [target]
+          format: [attest, statement]
+          oci: true
+          oci-repo: [oci_repo]
+
+      - name:  Verify policy step
+        uses: scribe-security/action-verify@master
+        with:
+          target: [target]
+          input-format: [attest-generic, statement-generic]
+          oci: true
+          oci-repo: [oci_repo]
+```
+
+</details>
+
 ## .gitignore
+
 It's recommended to add output directory value to your .gitignore file.
 By default add `**/scribe` to your `.gitignore`.
 
