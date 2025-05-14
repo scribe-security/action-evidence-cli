@@ -47,8 +47,6 @@ inputs:
     description: Private key password
   pubkey:
     description: Public key path
-  skip-confirmation:
-    description: Skip Sigstore Confirmation
   tool:
     description: Evidence Tool name
   tool-vendor:
@@ -66,7 +64,7 @@ inputs:
   gate:
     description: Policy Gate name
   input:
-    description: Input Evidence target, format (\<parser>:\<file> or \<scheme>:\<name>:\<tag>)
+    description: Input Evidence target, format (<parser>:<file> or <scheme>:<name>:<tag>)
   label:
     description: Add Custom labels
   level:
@@ -139,7 +137,6 @@ runs:
         ${{ inputs.parser && '--parser=' }}${{ inputs.parser }} \
         ${{ inputs.pass && '--pass=' }}${{ inputs.pass }} \
         ${{ inputs.pubkey && '--pubkey=' }}${{ inputs.pubkey }} \
-        ${{ inputs.skip-confirmation && '--skip-confirmation=' }}${{ inputs.skip-confirmation }} \
         ${{ inputs.tool && '--tool=' }}${{ inputs.tool }} \
         ${{ inputs.tool-vendor && '--tool-vendor=' }}${{ inputs.tool-vendor }} \
         ${{ inputs.tool-version && '--tool-version=' }}${{ inputs.tool-version }} \
