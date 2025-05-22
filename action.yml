@@ -47,6 +47,8 @@ inputs:
     description: Private key password
   pubkey:
     description: Public key path
+  skip-confirmation:
+    description: Skip Sigstore Confirmation
   tool:
     description: Evidence Tool name
   tool-vendor:
@@ -61,10 +63,12 @@ inputs:
     description: Mark as deliverable, options=[true, false]
   env:
     description: Environment keys to include in evidence
-  gate:
+  gate-name:
     description: Policy Gate name
+  gate-type:
+    description: Policy Gate type
   input:
-    description: Input Evidence target, format (<parser>:<file> or <scheme>:<name>:<tag>)
+    description: Input Evidence target, format (\<parser>:\<file> or \<scheme>:\<name>:\<tag>)
   label:
     description: Add Custom labels
   level:
@@ -137,6 +141,7 @@ runs:
         ${{ inputs.parser && '--parser=' }}${{ inputs.parser }} \
         ${{ inputs.pass && '--pass=' }}${{ inputs.pass }} \
         ${{ inputs.pubkey && '--pubkey=' }}${{ inputs.pubkey }} \
+        ${{ inputs.skip-confirmation && '--skip-confirmation=' }}${{ inputs.skip-confirmation }} \
         ${{ inputs.tool && '--tool=' }}${{ inputs.tool }} \
         ${{ inputs.tool-vendor && '--tool-vendor=' }}${{ inputs.tool-vendor }} \
         ${{ inputs.tool-version && '--tool-version=' }}${{ inputs.tool-version }} \
@@ -145,7 +150,8 @@ runs:
         --context-type=github \
         ${{ inputs.deliverable && '--deliverable=' }}${{ inputs.deliverable }} \
         ${{ inputs.env && '--env=' }}${{ inputs.env }} \
-        ${{ inputs.gate && '--gate=' }}${{ inputs.gate }} \
+        ${{ inputs.gate-name && '--gate-name=' }}${{ inputs.gate-name }} \
+        ${{ inputs.gate-type && '--gate-type=' }}${{ inputs.gate-type }} \
         ${{ inputs.input && '--input=' }}${{ inputs.input }} \
         ${{ inputs.label && '--label=' }}${{ inputs.label }} \
         ${{ inputs.level && '--level=' }}${{ inputs.level }} \
